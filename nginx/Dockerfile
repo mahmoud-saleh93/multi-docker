@@ -1,0 +1,4 @@
+FROM nginx
+
+COPY ./default.conf  /etc/ngx/conf.d/default.conf
+
