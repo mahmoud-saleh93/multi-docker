@@ -1,22 +1,36 @@
 sudo: required
-service: 
-    - docker
+language: generic
 
-befor_install: 
-    - docker build -t 01065450079/react-test -f ./client/Dockerfile.dev ./client
+services:
+  - docker
+
+before_install:
+  - docker build -t 01065450079/react-test -f ./client/Dockerfile.dev ./client
 
 script:
-    - docker run -e CI=true 01065450079/react-test npm test 
+  - docker run -e CI=true 01065450079/react-test npm test
 
-after_success: 
-    - docker build -t 01065450079/multi-client ./client 
-    - docker build -t 01065450079/multi-server ./server
-    - docker build -t 01065450079/multi-nginx ./nginx
-    - docker build -t 01065450079/multi-worker ./worker
+after_success:
+  - docker build -t 01065450079/multi-client-10-14 ./client
+  - docker build -t 01065450079/multi-nginx-10-14 ./nginx
+  - docker build -t 01065450079/multi-server-10-14 ./server
+  - docker build -t 01065450079/multi-worker-10-14 ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push 01065450079/multi-client-10-14
+  - docker push 01065450079/multi-nginx-10-14
+  - docker push 01065450079/multi-server-10-14
+  - docker push 01065450079/multi-worker-10-14
 
-    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID"  --password-stdin
-
-    - docker push 01065450079/multi-client
-    - docker push 01065450079/multi-server
-    - docker push 01065450079/multi-worker
-    - docker push 01065450079/multi-nginx 
+#deploy:
+#  provider: elasticbeanstalk
+#  region: 'us-east-1'
+#  app: 'multi-docker'
+#  env: 'MultiDocker-env'
+#  bucket_name: 'elasticbeanstalk-us-east-1-923445559289'
+#  bucket_path: 'docker-multi'
+#  on:
+#    branch: master
+#  access_key_id: $AWS_ACCESS_KEY
+#  secret_access_key: $AWS_SECRET_KEY
